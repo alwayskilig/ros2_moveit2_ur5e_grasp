@@ -22,6 +22,9 @@ x-ur5e-common: &ur5e-common
     - /tmp/.X11-unix:/tmp/.X11-unix:rw
     - /mnt/wslg:/mnt/wslg
     - /dev:/dev
+    - ros2_build:/ros2_ws/build
+    - ros2_install:/ros2_ws/install
+    - ros2_log:/ros2_ws/log
 
   working_dir: /ros2_ws
 
@@ -41,24 +44,18 @@ services:
       - bash
       - -lc
       - |
+        set -e
         source /opt/ros/humble/setup.bash
         cd /ros2_ws
 
-        echo "===== workspace files ====="
-        ls -lah /ros2_ws
-        echo "===== packages ====="
-        colcon list
+        if [ ! -f /ros2_ws/install/setup.bash ]; then
+          echo "===== first run: build workspace ====="
+          colcon build --event-handlers console_direct+ 
+        else
+          echo "===== install already exists, skip build ====="
+        fi
 
-        echo "===== build workspace ====="
-        colcon build  --event-handlers console_direct+ \
-          --packages-skip \
-          robotiq_2f_85_gripper_description \
-          dual_ur5e_gripper_moveit_config
-
-        echo "===== source workspace ====="
         source /ros2_ws/install/setup.bash
-
-        echo "===== launch simulation ====="
         ros2 launch ur_bringup simulation.launch.py
 
   grasp-demo:
@@ -68,14 +65,21 @@ services:
       - bash
       - -lc
       - |
+        set -e
         source /opt/ros/humble/setup.bash
         cd /ros2_ws
 
-        colcon build  --event-handlers console_direct+ \
-          --packages-skip \
-          robotiq_2f_85_gripper_description \
-          dual_ur5e_gripper_moveit_config
+        if [ ! -f /ros2_ws/install/setup.bash ]; then
+          echo "===== first run: build workspace ====="
+          colcon build --event-handlers console_direct+ \
+        else
+          echo "===== install already exists, skip build ====="
+        fi
 
         source /ros2_ws/install/setup.bash
-
         ros2 launch ur_bringup start_grasp.launch.py
+
+volumes:
+  ros2_build:
+  ros2_install:
+  ros2_log:
