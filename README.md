@@ -92,15 +92,6 @@ docker compose up simulation
 docker compose up grasp-demo
 ```
 
-也可以进入常驻容器后手动启动：
-
-```
-docker compose exec ur5e-grasp bash
-source install/setup.bash
-ros2 launch ur_bringup simulation.launch.py
-ros2 launch ur_bringup start_grasp.launch.py
-```
-
 
 ------
 
