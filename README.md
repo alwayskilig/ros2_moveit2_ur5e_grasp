@@ -122,6 +122,7 @@ sudo apt install ros-humble-octomap-*
 ```
 sudo apt install ros-humble-realsense2-camera
 pip install ultralytics
+pip install filterpy
 ```
 
 ------
