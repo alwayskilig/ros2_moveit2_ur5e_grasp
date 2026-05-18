@@ -25,6 +25,7 @@
 - **OctoMap 动态建图**
 - **深度相机（ RealSense ）**
 - **RViz2可视化**
+- **Docker / Docker Compose 容器化部署**
 
 # 功能包说明
 
@@ -55,7 +56,83 @@
 
 ------
 
-## 2. 安装ROS2 Humble
+## 2. Docker 部署（推荐）
+
+如果你希望快速复现实验环境，推荐直接使用 Docker。镜像内已包含 ROS2 Humble、MoveIt2、Gazebo、OctoMap、RealSense、UR 驱动以及视觉检测所需的 Python 依赖。
+
+### 2.1 前置要求
+
+- 已安装 Docker Engine
+- 已安装 Docker Compose v2（使用 `docker compose` 命令）
+- 如需运行 Gazebo / RViz2 图形界面，宿主机需要支持 X11 或 WSLg
+- 如需 GPU 图形加速，宿主机需正确安装 NVIDIA 驱动与 NVIDIA Container Toolkit
+
+Linux X11 环境可先允许容器访问显示服务：
+
+```
+xhost +local:docker
+```
+
+WSL2 + WSLg 通常不需要额外配置，`docker-compose.yml` 已挂载 `/mnt/wslg` 并设置相关显示环境变量。
+
+### 2.2 拉取并进入容器
+
+默认使用 Docker Hub 镜像 `nack03/ros2_moveit2_ur5e_grasp:humble`：
+
+```
+docker compose pull
+docker compose up -d ur5e-grasp
+docker compose exec ur5e-grasp bash
+```
+
+进入容器后，可手动编译并 source 工作区：
+
+```
+colcon build --event-handlers console_direct+ \
+  --packages-skip \
+  robotiq_2f_85_gripper_description \
+  dual_ur5e_gripper_moveit_config
+source install/setup.bash
+```
+
+### 2.3 本地构建镜像（可选）
+
+如果你修改了源码或希望自行构建镜像，可以在仓库根目录执行：
+
+```
+docker build -t nack03/ros2_moveit2_ur5e_grasp:humble .
+```
+
+`docker-compose.yml` 默认使用同名镜像，因此本地构建完成后可以直接继续使用下面的 compose 命令。
+
+### 2.4 启动仿真与抓取 Demo
+
+启动仿真环境：
+
+```
+docker compose up simulation
+```
+
+另开一个终端启动抓取 demo：
+
+```
+docker compose up grasp-demo
+```
+
+也可以进入常驻容器后手动启动：
+
+```
+docker compose exec ur5e-grasp bash
+source install/setup.bash
+ros2 launch ur_bringup simulation.launch.py
+ros2 launch ur_bringup start_grasp.launch.py
+```
+
+> 注：`simulation` 和 `grasp-demo` 服务会在启动前自动执行 `colcon build`，并跳过当前工作区中暂不参与构建的 `robotiq_2f_85_gripper_description` 与 `dual_ur5e_gripper_moveit_config` 包。
+
+------
+
+## 3. 安装ROS2 Humble
 
 参考官方安装指南，或使用以下命令快速安装：
 
@@ -76,7 +153,7 @@ source ~/.bashrc
 
 ------
 
-## 3. 安装MoveIt2
+## 4. 安装MoveIt2
 
 ```
 sudo apt update
@@ -96,7 +173,7 @@ sudo apt install ros-humble-vision-msgs
 
 ------
 
-## 4. 安装UR5e机械臂依赖
+## 5. 安装UR5e机械臂依赖
 
 ```
 sudo apt install ros-humble-ur-client-library
@@ -107,7 +184,7 @@ sudo apt install ros-humble-ur-description ros-humble-ur-moveit-config
 
 ------
 
-## 5. 安装OctoMap依赖
+## 6. 安装OctoMap依赖
 
 ```
 sudo apt install ros-humble-octomap-*
@@ -115,7 +192,7 @@ sudo apt install ros-humble-octomap-*
 
 ------
 
-## 6. 安装深度相机驱动与目标检测环境（示例）
+## 7. 安装深度相机驱动与目标检测环境（示例）
 
 以 RealSense 相机为例（如果你用的是别的如 Orbbec，相应替换）：
 
@@ -127,7 +204,7 @@ pip install filterpy
 
 ------
 
-## 7. 克隆并编译本项目
+## 8. 克隆并编译本项目
 
 首先新建工作区：
 
@@ -158,7 +235,7 @@ source ~/ros2_ws/install/setup.bash
 
 ------
 
-## 8. 启动示例
+## 9. 启动示例
 
 一键启动完整系统（建议顺序）：
 
