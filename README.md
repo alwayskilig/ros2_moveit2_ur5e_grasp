@@ -67,13 +67,6 @@
 - 如需运行 Gazebo / RViz2 图形界面，宿主机需要支持 X11 或 WSLg
 - 如需 GPU 图形加速，宿主机需正确安装 NVIDIA 驱动与 NVIDIA Container Toolkit
 
-Linux X11 环境可先允许容器访问显示服务：
-
-```
-xhost +local:docker
-```
-
-WSL2 + WSLg 通常不需要额外配置，`docker-compose.yml` 已挂载 `/mnt/wslg` 并设置相关显示环境变量。
 
 ### 2.2 拉取并进入容器
 
@@ -81,31 +74,11 @@ WSL2 + WSLg 通常不需要额外配置，`docker-compose.yml` 已挂载 `/mnt/w
 
 ```
 docker compose pull
-docker compose up -d ur5e-grasp
-docker compose exec ur5e-grasp bash
 ```
 
-进入容器后，可手动编译并 source 工作区：
 
-```
-colcon build --event-handlers console_direct+ \
-  --packages-skip \
-  robotiq_2f_85_gripper_description \
-  dual_ur5e_gripper_moveit_config
-source install/setup.bash
-```
 
-### 2.3 本地构建镜像（可选）
-
-如果你修改了源码或希望自行构建镜像，可以在仓库根目录执行：
-
-```
-docker build -t nack03/ros2_moveit2_ur5e_grasp:humble .
-```
-
-`docker-compose.yml` 默认使用同名镜像，因此本地构建完成后可以直接继续使用下面的 compose 命令。
-
-### 2.4 启动仿真与抓取 Demo
+### 2.3 启动仿真与抓取 Demo
 
 启动仿真环境：
 
@@ -128,7 +101,6 @@ ros2 launch ur_bringup simulation.launch.py
 ros2 launch ur_bringup start_grasp.launch.py
 ```
 
-> 注：`simulation` 和 `grasp-demo` 服务会在启动前自动执行 `colcon build`，并跳过当前工作区中暂不参与构建的 `robotiq_2f_85_gripper_description` 与 `dual_ur5e_gripper_moveit_config` 包。
 
 ------
 
