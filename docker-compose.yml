@@ -1,0 +1,81 @@
+x-ur5e-common: &ur5e-common
+  image: nack03/ros2_moveit2_ur5e_grasp:humble
+
+  network_mode: host
+  ipc: host
+  privileged: true
+
+  environment:
+    DISPLAY: ${DISPLAY:-:0}
+    WAYLAND_DISPLAY: ${WAYLAND_DISPLAY:-wayland-0}
+    XDG_RUNTIME_DIR: ${XDG_RUNTIME_DIR:-/mnt/wslg/runtime-dir}
+    PULSE_SERVER: ${PULSE_SERVER:-unix:/mnt/wslg/PulseServer}
+    QT_X11_NO_MITSHM: "1"
+
+    ROS_DOMAIN_ID: ${ROS_DOMAIN_ID:-0}
+    RMW_IMPLEMENTATION: ${RMW_IMPLEMENTATION:-rmw_fastrtps_cpp}
+
+    NVIDIA_VISIBLE_DEVICES: ${NVIDIA_VISIBLE_DEVICES:-all}
+    NVIDIA_DRIVER_CAPABILITIES: ${NVIDIA_DRIVER_CAPABILITIES:-all}
+
+  volumes:
+    - /tmp/.X11-unix:/tmp/.X11-unix:rw
+    - /mnt/wslg:/mnt/wslg
+    - /dev:/dev
+
+  working_dir: /ros2_ws
+
+  stdin_open: true
+  tty: true
+
+services:
+  ur5e-grasp:
+    <<: *ur5e-common
+    container_name: ur5e-grasp
+    command: sleep infinity
+
+  simulation:
+    <<: *ur5e-common
+    container_name: ur5e-grasp-sim
+    command:
+      - bash
+      - -lc
+      - |
+        source /opt/ros/humble/setup.bash
+        cd /ros2_ws
+
+        echo "===== workspace files ====="
+        ls -lah /ros2_ws
+        echo "===== packages ====="
+        colcon list
+
+        echo "===== build workspace ====="
+        colcon build  --event-handlers console_direct+ \
+          --packages-skip \
+          robotiq_2f_85_gripper_description \
+          dual_ur5e_gripper_moveit_config
+
+        echo "===== source workspace ====="
+        source /ros2_ws/install/setup.bash
+
+        echo "===== launch simulation ====="
+        ros2 launch ur_bringup simulation.launch.py
+
+  grasp-demo:
+    <<: *ur5e-common
+    container_name: ur5e-grasp-demo
+    command:
+      - bash
+      - -lc
+      - |
+        source /opt/ros/humble/setup.bash
+        cd /ros2_ws
+
+        colcon build  --event-handlers console_direct+ \
+          --packages-skip \
+          robotiq_2f_85_gripper_description \
+          dual_ur5e_gripper_moveit_config
+
+        source /ros2_ws/install/setup.bash
+
+        ros2 launch ur_bringup start_grasp.launch.py
