@@ -179,7 +179,7 @@ cd ~/ros2_ws/src
 克隆项目源码（替换成你的GitHub仓库链接）：
 
 ```
-git clone https://github.com/Nackustb/ros2_moveit2_ur5e_grasp
+git clone https://github.com/alwayskilig/ros2_moveit2_ur5e_grasp
 ```
 
 回到工作区根目录，安装依赖并编译：
@@ -203,9 +203,13 @@ source ~/ros2_ws/install/setup.bash
 一键启动完整系统（建议顺序）：
 
 ```
-1. 启动仿真环境 
+1. 启动仿真环境 (第一个终端)
+source ~/ros2_ws/install/setup.bash
+cd src/ros2_moveit2_ur5e_grasp
 ros2 launch ur_bringup simulation.launch.py
-2. 启动抓取demo
+2. 启动抓取demo(第二个终端)
+source ~/ros2_ws/install/setup.bash
+cd src/ros2_moveit2_ur5e_grasp
 ros2 launch ur_bringup start_grasp.launch.py
 ```
 
